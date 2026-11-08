@@ -26,5 +26,7 @@
 - 首頁標題下方放專案的 GitHub 連結
 - 圖表需有編號、說明，並在正文中引用
 
-共用文件連結：待補
-Overleaf 專案連結：待補
+## 連結
+
+- 共用文件連結：https://docs.google.com/document/d/1pjz_50XfcfH2exVhHeaVaX_RCcebAHG0lvDOhaLCz_I/edit?usp=sharing
+- Overleaf 專案連結：待補
