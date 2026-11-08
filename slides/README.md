@@ -25,4 +25,4 @@
 - 繳交格式為 PPTX 或 PDF
 - 上台使用繳交的版本
 
-共用簡報連結：待補
+共用簡報連結：https://docs.google.com/presentation/d/1Q2OVqCXat2brsknH3ZK2eEui1MebI_TbWV-7HCL5zIU/edit?usp=sharing
