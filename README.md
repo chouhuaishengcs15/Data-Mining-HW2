@@ -36,7 +36,7 @@
 ## 共用連結
 
 - 書面共筆：待補
-- 共用簡報：待補
+- 共用簡報：https://docs.google.com/presentation/d/1Q2OVqCXat2brsknH3ZK2eEui1MebI_TbWV-7HCL5zIU/edit?usp=sharing
 - Overleaf 專案：待補
 
 ## 執行方式
