@@ -35,7 +35,7 @@
 
 ## 共用連結
 
-- 書面共筆：待補
+- 書面共筆：https://docs.google.com/document/d/1pjz_50XfcfH2exVhHeaVaX_RCcebAHG0lvDOhaLCz_I/edit?usp=sharing
 - 共用簡報：https://docs.google.com/presentation/d/1Q2OVqCXat2brsknH3ZK2eEui1MebI_TbWV-7HCL5zIU/edit?usp=sharing
 - Overleaf 專案：待補
 
