@@ -1,0 +1,5 @@
+split,exams,normal,pathologic,suspect,n_main,anomaly_rate_%
+train,204,972,104,190,1076,9.67
+val,64,342,35,48,377,9.28
+test,84,341,37,57,378,9.79
+all,352,1655,176,295,1831,9.61
