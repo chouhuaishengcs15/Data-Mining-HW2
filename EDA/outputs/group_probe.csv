@@ -1,0 +1,16 @@
+feature_set,n_features,AUROC_mean,AUROC_sd,PR_AUC_mean,PR_AUC_sd,features
+ALL21,21,0.9468,0.0042,0.6473,0.0640,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency
+variability only (ASTV MSTV ALTV MLTV),4,0.8621,0.0051,0.3717,0.0092,ASTV MSTV ALTV MLTV
+events only (AC FM UC DL DS DP),6,0.8916,0.0015,0.5882,0.0504,AC FM UC DL DS DP
+accel/decel only (AC DL DS DP),4,0.8503,0.0028,0.6811,0.0175,AC DL DS DP
+histogram only (10),10,0.8029,0.0033,0.4196,0.0103,Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency
+baseline only (LB),1,0.3612,0.0104,0.0888,0.0020,LB
+ALL21 - variability,17,0.8528,0.0017,0.5652,0.0629,LB AC FM UC DL DS DP Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency
+ALL21 - accel/decel,17,0.9335,0.0039,0.4795,0.0269,LB FM UC ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency
+ALL21 - histogram,11,0.9614,0.0035,0.6958,0.0570,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV
+ALL21 - Width,20,0.9477,0.0040,0.6493,0.0641,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV Min Max Nmax Nzeros Mode Mean Median Variance Tendency
+ALL21 with pruned histogram,17,0.9543,0.0037,0.6646,0.0650,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV Max Nmax Nzeros Median Variance Tendency
+ALL21 + DEC_SUM,22,0.9461,0.0043,0.6465,0.0645,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency DEC_SUM
+ALL21 + ACC_DEC,22,0.9464,0.0042,0.6464,0.0643,LB AC FM UC DL DS DP ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency ACC_DEC
+"ALL21, DL DS DP -> DEC_SUM",19,0.9347,0.0044,0.5120,0.0279,LB AC FM UC ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency DEC_SUM
+"ALL21, AC DL DS DP -> ACC_DEC",18,0.9353,0.0042,0.5001,0.0296,LB FM UC ASTV MSTV ALTV MLTV Width Min Max Nmax Nzeros Mode Mean Median Variance Tendency ACC_DEC

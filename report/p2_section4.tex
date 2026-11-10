@@ -1,0 +1,120 @@
+% =====================================================================
+% Section 4 -- Exploratory Feature Analysis (P2)
+% For I1: \input{p2_section4} inside the ACL template.
+% Requires: graphicx, booktabs. Figures live in EDA/figures/ (PDF and PNG).
+% Every number below is produced by `python EDA/p2_eda.py` from the
+% TRAINING portion only (EDA/outputs/*.csv). Citation keys to add to the
+% .bib: huang2021interpretability, ayresdecampos2000sisporto.
+% Section references (\S7--\S8) follow the course outline; adjust if needed.
+% =====================================================================
+\section{Exploratory Feature Analysis}
+\label{sec:eda}
+
+All analyses in this section use only the training portion (972 Normal and
+104 Pathologic segments from 175 examinations); validation and test data were
+not inspected. Labels are used here for description only; the one-class
+detectors are fitted on Normal training segments. Because the 104 Pathologic
+segments come from only 28 examinations, and two examinations contribute 36 of
+them, uncertainty is reported with a cluster bootstrap that resamples whole
+examinations (2{,}000 resamples).
+
+\paragraph{Distribution contrast.}
+Figure~\ref{fig:variability} compares the four FHR-variability features.
+ASTV, the percentage of time with abnormal short-term variability, shifts
+upward (median 40 vs.\ 65), and MLTV collapses toward zero (51\% of Pathologic
+segments have $\mathrm{MLTV}=0$ vs.\ 4\% of Normal ones). MSTV is instead
+bimodal in the Pathologic class. Splitting Pathologic segments by a label-free
+rule explains this: segments with prolonged decelerations ($\mathrm{DP}>0$;
+65 segments) have high MSTV, a wide histogram and a low histogram mean (medians
+2.7, 113 and 96\,bpm), whereas those without ($\mathrm{DP}=0$; 39 segments)
+are flat (medians: MSTV 0.3, Width 18, ALTV 69\%). The two groups deviate from
+Normal (MSTV 1.2, Width 68, Mean 134\,bpm, ALTV 0\%) in \emph{opposite}
+directions; only ASTV is elevated in both (ASTV $\ge 60$ in 83\% and 95\% of
+the two groups vs.\ 16\% of Normal). Event features are zero-inflated, so we
+compare presence rates: a prolonged deceleration occurs in 62.5\% of
+Pathologic but 4.7\% of Normal segments, and an acceleration in 19.2\% vs.\
+67.2\%.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{fig1_variability_contrast.pdf}
+  \caption{FHR-variability features in the training portion. Top:
+  histograms normalised within each class, so that the 972:104 imbalance does
+  not distort the comparison. Bottom: empirical CDFs; the KS statistic is the
+  largest vertical gap. ASTV and ALTV are percentages of time; UCI states no
+  unit for MSTV and MLTV. Pathologic MSTV is bimodal and 69\% of Pathologic
+  ALTV values are zero.}
+  \label{fig:variability}
+\end{figure*}
+
+\paragraph{Feature separability.}
+Table~\ref{tab:sep} reports the two-sample Kolmogorov--Smirnov statistic, a
+rank-based AUC, and $k$NN mutual information (MI) with the label. Wasserstein
+distances were computed after scaling by the Normal standard deviation, since
+raw values are not comparable across units (ASTV: 1.40 SD; Mean: 1.84 SD).
+ASTV is the most separable and the most stable feature (KS 0.71, 95\% CI
+0.56--0.84). DP and the histogram mean rank next, but their intervals are wide
+and their KS drops to 0.41 and 0.37 when the two largest Pathologic
+examinations are removed, so they partly reflect a few examinations. A naive
+segment-level bootstrap would have given 0.51--0.68 for DP, which understates
+this uncertainty. MSTV shows why direction-specific scores mislead for
+anomaly detection: its AUC is 0.59, but the AUC of its absolute deviation from
+the Normal mean is 0.80. The baseline LB carries no usable signal on its own
+(0.37).
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{2.8pt}
+\begin{tabular}{lrrlccc}
+\toprule
+ & \multicolumn{2}{c}{Median} & & & & \\
+\cmidrule(lr){2-3}
+Feature & N & P & KS [95\% CI] & AUC & $|z|$ & MI \\
+\midrule
+ASTV (\%)     & 40    & 65    & .71 [.56, .84] & .86 & .83 & .13 \\
+DP$^{\dagger}$ & 0 & 1.7   & .60 [.29, .78] & .80 & .80 & .13 \\
+Mean (bpm)    & 134   & 103.5 & .58 [.29, .77] & .19 & .80 & .14 \\
+MLTV          & 8.1   & 0     & .54 [.44, .68] & .17 & .73 & .09 \\
+AC$^{\dagger}$ & 2.5 & 0   & .50 [.34, .67] & .23 & .57 & .05 \\
+MSTV          & 1.2   & 2.1   & .36 [.31, .59] & .59 & .80 & .13 \\
+ALTV (\%)     & 0     & 0     & .22 [.14, .50] & .52 & .63 & .06 \\
+LB (bpm)      & 132   & 133   & .22 [.15, .39] & .49 & .37 & .08 \\
+\bottomrule
+\end{tabular}
+\caption{Separability of selected features (training portion; N = Normal,
+P = Pathologic). AUC = $P(x_P > x_N)$ with ties counted one half, so values
+far from .5 in either direction indicate separation; $|z|$ = AUC of the
+absolute $z$-score with respect to the Normal mean and SD; MI in nats (label
+entropy 0.32); $\dagger$ events per 1000\,s. CIs resample examinations. All 21 features are in the
+supplementary table.}
+\label{tab:sep}
+\end{table}
+
+\paragraph{Redundancy.}
+The histogram family is strongly redundant. $\mathrm{Width}=\mathrm{Max}-\mathrm{Min}$
+holds exactly for every training segment, so the covariance of the 21 features
+has rank 20. Mode, Mean and Median are nearly interchangeable (Spearman
+$\rho=0.90$--$0.97$), and Width, Min and Variance are strongly related
+($\rho=-0.89$ and $0.82$). In contrast, the variability features are not
+redundant with one another (ASTV--MSTV $\rho=-0.36$; ALTV--MLTV $\rho=-0.02$).
+A label-free rule fitted on Normal training segments (complete-linkage
+clusters with $|\rho|\ge 0.8$, keep the medoid, drop Width) removes Width,
+Min, Mode and Mean, leaving 17 features.
+
+\paragraph{Exploratory hypotheses.}
+These observations shape the feature design tested in \S7--\S8. Pathologic
+segments form two phenotypes that are visible in different feature families,
+which motivates family-level rather than single-feature ablations.
+\textbf{H1}: the variability family (ASTV, MSTV, ALTV, MLTV) is necessary;
+removing it lowers detection performance, mainly on Pathologic segments
+without prolonged decelerations.
+\textbf{H2}: deceleration type is informative; replacing DL, DS and DP by
+their sum does not help, because light decelerations are common in Normal
+segments (45\%) and the sum is less separable than DP alone (KS 0.40 vs.\
+0.60). Our initial expectation that aggregated deceleration features would
+improve on the raw ones was therefore not supported.
+\textbf{H3}: the 17-feature set obtained by the label-free pruning rule
+performs on par with all 21 features. Each hypothesis changes only the feature
+set, with the data split, model configuration and seeds held fixed, and is
+judged on validation PR-AUC.

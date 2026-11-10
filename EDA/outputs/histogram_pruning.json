@@ -1,0 +1,48 @@
+{
+  "threshold_abs_spearman": 0.8,
+  "clusters": [
+    [
+      "Mode",
+      "Mean",
+      "Median"
+    ],
+    [
+      "Max"
+    ],
+    [
+      "Width",
+      "Min"
+    ],
+    [
+      "Variance"
+    ],
+    [
+      "Nmax"
+    ],
+    [
+      "Nzeros"
+    ],
+    [
+      "Tendency"
+    ]
+  ],
+  "kept": [
+    "Max",
+    "Nmax",
+    "Nzeros",
+    "Median",
+    "Variance",
+    "Tendency"
+  ],
+  "dropped": [
+    "Width",
+    "Min",
+    "Mode",
+    "Mean"
+  ],
+  "covariance_conditioning_normal_train": {
+    "cov_min_eigenvalue_all21": 4.146923426680148e-16,
+    "cov_max_eigenvalue_all21": 4.851715053419877,
+    "rank_all21": 20
+  }
+}
