@@ -1,11 +1,12 @@
 # P2 Feature Hypotheses 與 P5 Handoff
 
-- 撰寫：P2（Claude Code Fable）；初版 2026-11-10，R3 修訂 2026-11-11（依 GPT-6 R1／R2 審查）
+- 撰寫：P2（Claude Code Fable）；初版 2026-11-10，R3、R5、Final 修訂 2026-11-11（依 GPT-6 審查）
 - 證據：`EDA/outputs/*.csv`（全部只用 train；`python EDA/p2_eda.py` 可重現）
-- 狀態：三個都是 **Hypothesis**，尚未經 P5 的正式消融驗證。
+- 狀態：H1、H3 都是 **Hypothesis**，**Pending P5 Verification**；H2′ 是補充的負面觀察。
+- 正式定義：**H1 = `ALL21` 對 `NO_VARIABILITY17`；H3 = `ALL21` 對 `DROP_WIDTH20` 對 `PRUNED18`。** `PRUNED17` 只是選做對照。
 
 
-> **R5 更新（2026-11-11）**：H3 的主要特徵集合改為 **PRUNED18**（移除 Width、Mode、Mean；先移除 Width 再分群，Min 保留）。下文的 PRUNED17（另外移除 Min）保留為選做對照，不是主結果，也不得宣稱無資訊損失。主要比較為 `ALL21`、`DROP_WIDTH20`、`PRUNED18`（H3）與 `NO_VARIABILITY17`（H1）；定義見 `EDA/outputs/feature_sets.json`，尚待 P3／P5 確認。H1、H3 目前狀態皆為 **Pending P5 Verification**。下文的 Train-only 探針沒有測過 PRUNED18。
+> **R5 更新（2026-11-11）**：H3 的主要特徵集合改為 **PRUNED18**（移除 Width、Mode、Mean；先移除 Width 再分群，Min 保留）。PRUNED17（另外移除 Min）保留為選做對照，不是主結果，也不得宣稱無資訊損失。主要比較為 `ALL21`、`DROP_WIDTH20`、`PRUNED18`（H3）與 `NO_VARIABILITY17`（H1）；定義見 `EDA/outputs/feature_sets.json`，尚待 P3／P5 確認。H1、H3 目前狀態皆為 **Pending P5 Verification**。下文的 Train-only 探針沒有測過 PRUNED18。
 
 ## R3 修訂摘要
 
@@ -22,7 +23,7 @@
 | ID | 假說 | 訓練集 EDA 的支持程度 | 建議 |
 |---|---|---|---|
 | **H1** | 變異度特徵群（ASTV、MSTV、ALTV、MLTV）提供其他特徵補不上的偵測資訊 | 分布證據支持，值得正式測試 | 主要假說 |
-| **H3** | 依正常資料相關性挑選的 17 個特徵，表現與 21 個相近 | 冗餘證據明確；效能是否相近未知 | 主要假說 |
+| **H3** | 依正常資料相關性挑選的 18 個特徵（PRUNED18），表現與 21 個相近 | 冗餘證據明確；效能是否相近未知 | 主要假說 |
 | **H2′** | 減速的類型有資訊；把 DL、DS、DP 加總沒有幫助 | 原本「衍生組合更好」的 H2 不被支持 | 補充（負面結果） |
 
 推薦正式寫 **H1 與 H3**。H2′ 在消融表中多一列即可。
@@ -59,7 +60,7 @@
 | ALL21 − 變異度群 | 17 | 0.853 | 0.565 |
 | ALL21 − AC/DL/DS/DP | 17 | 0.934 | 0.480 |
 | ALL21 − Width | 20 | 0.948 | 0.649 |
-| PRUNED17 | 17 | 0.954 | 0.665 |
+| PRUNED17（選做對照；探針沒有測 PRUNED18） | 17 | 0.954 | 0.665 |
 | ALL21 − 全部 Histogram | 11 | 0.961 | 0.696 |
 | ALL21，DL/DS/DP → DEC_SUM | 19 | 0.935 | 0.512 |
 | ALL21，AC/DL/DS/DP → ACC_DEC | 18 | 0.935 | 0.500 |
@@ -122,6 +123,47 @@
 4. **Feature Design**（`EDA/outputs/histogram_pruning.json`）
 
    規則（只用 Normal-train，不使用異常標籤；門檻 0.8 事先固定、沒有調過）：
+   1. 先移除 Width（Width = Max − Min，確定性冗餘）。
+   2. 計算其餘 9 個直方圖特徵之間的 |Spearman|。
+   3. Complete linkage 分群，同群內任兩個特徵 |ρ| ≥ 0.8。
+   4. 每群保留 medoid（與同群其他成員平均 |ρ| 最高者；平手取欄位順序在前者）。
+
+   結果：
+   - {Mode, Mean, Median} → 保留 Median。
+   - Min、Max、Variance、Nmax、Nzeros、Tendency 各自成群，全部保留。
+   - `PRUNED18 = ALL21 − {Width, Mode, Mean}`（H3 的正式集合）。
+
+   **兩種移除的性質不同，必須分開說：**
+
+   | 移除 | 性質 | 資訊損失 |
+   |---|---|---|
+   | 只移除 Width（`DROP_WIDTH20`） | 確定性冗餘：Width = Max − Min | 無。可由保留的 Max、Min 精確算回 |
+   | 再移除 Mode、Mean（`PRUNED18`） | 高度相關的近似重複 | 有，但小：保留的 18 個特徵可線性解釋其變異的 93%、94%（Normal-train） |
+
+   所以 PRUNED18 是**依冗餘程度做的啟發式特徵挑選**，不是無損精簡。它是否影響偵測表現，只能由實驗回答。
+
+   **選做對照 `PRUNED17`**（`ALL21 − {Width, Min, Mode, Mean}`）：這是較早的規則順序（先分群、最後才移除 Width）產生的結果。{Width, Min} 一群的代表是 Width，Width 被移除後整群沒有留下成員，Min 也跟著被移除。Width 不在時 Min 無法由 Max 還原（Normal-train 中 Min–Max ρ=−0.25），保留的 17 個特徵只能線性解釋 Min 變異的 80%。它**不是主要消融，也不得宣稱無資訊損失**。
+
+5. **假設**
+   - H0：PRUNED18 的驗證集 PR-AUC 與 ALL21 的差距在 seed 變動範圍內。
+   - H1：PRUNED18 明顯較差，代表被移除的 Mean／Mode 帶有模型用得到的資訊。
+   - 注意：「差距在 seed 變動範圍內」只能寫成「未觀察到差異」，不能寫成「證明等效」。
+6. **P5 Controlled Ablation**：`ALL21`、`DROP_WIDTH20`、`PRUNED18` 三組一起比（狀態：Pending P5 Verification）。
+   - DROP_WIDTH20 對 ALL21：檢驗移除確定性冗餘是否完全無影響（理論上對線性模型無影響，對 Autoencoder 應該也很小）。
+   - PRUNED18 對 DROP_WIDTH20：檢驗額外移除 Mode、Mean 的代價。
+7. **可能失敗原因**：非線性模型可能從加總特徵學到不同的東西，結果可能與 EDA 的單變數判讀不同；若如此應如實報告。
+
+## H3：Histogram Redundancy
+
+1. **研究問題**：依正常資料的相關性挑掉重複的直方圖特徵後，Autoencoder 能否維持相近的偵測表現？
+2. **Dataset Observation（Verified，train）**
+   - `Width = Max − Min` 在 train 每一列都完全成立（殘差 0），21 個特徵的共變異數矩陣秩為 20。
+   - Spearman：Mode–Median 0.97、Mean–Median 0.94、Mode–Mean 0.90、Width–Min −0.89、Width–Variance 0.82；跨群組 LB–Median 0.81。
+   - VIF（Normal-train）：Median 34.5、Mean 18.3、Mode 14.4、LB 9.0。
+3. **External Evidence**：Huang et al. 2021 列出共線群 {LB, Mode, Median, Mean} 與 {Width, Variance, Nmax, MSTV, Max, DL}。
+4. **Feature Design**（`EDA/outputs/histogram_pruning.json`）
+
+   規則（只用 Normal-train，不使用異常標籤；門檻 0.8 事先固定、沒有調過）：
    1. 計算 10 個直方圖特徵之間的 |Spearman|。
    2. Complete linkage 分群，同群內任兩個特徵 |ρ| ≥ 0.8。
    3. 每群保留 medoid（與同群其他成員平均 |ρ| 最高者；平手取欄位順序在前者）。
@@ -151,13 +193,13 @@
 6. **P5 Controlled Ablation**：A0（ALL21）、A5（DROP_WIDTH20）、A6（PRUNED17）三組一起比。
    - A5 對 A0：檢驗移除確定性冗餘是否完全無影響（理論上對線性模型無影響，對 Autoencoder 應該也很小）。
    - A6 對 A5：檢驗額外移除 Min、Mode、Mean 的代價。
-7. **可能失敗原因**：Mean（單變數 KS 0.58）與 Min（0.40）在 DP-present 子群是明顯的訊號。若 A6 變差而 A5 不變，結論是「只有確定性冗餘可以安全移除」。
+7. **可能失敗原因**：Mean（單變數 KS 0.58）在 DP-present 子群是明顯的訊號。若 PRUNED18 變差而 DROP_WIDTH20 不變，結論是「只有確定性冗餘可以安全移除」。
 
 ---
 
 ## P5 Handoff Table
 
-**課程要求提醒**：P5 至少 2 個 controlled ablations，其中**至少 1 個是異常偵測專屬**（threshold／scoring／contamination 等）。下表全部是 Feature Ablation，**不能取代**異常偵測專屬的那一個。建議的最小組合：一組特徵消融（A0＋A1，或 A0＋A5＋A6）加一組 scoring-function 消融（由 P3／P5 設計）。
+**課程要求提醒**：P5 至少 2 個 controlled ablations，其中**至少 1 個是異常偵測專屬**（threshold／scoring／contamination 等）。下表全部是 Feature Ablation，**不能取代**異常偵測專屬的那一個。建議的最小組合：一組特徵消融（A0＋A1，或 A0＋A5＋A6，A6 為 PRUNED18）加一組 scoring-function 消融（由 P3／P5 設計）。
 
 **共同規則**
 - 資料：P1 的固定切分。模型：P3 的 Autoencoder 與超參數固定；每個設定用同一組 seeds，報告平均 ± SD。
@@ -172,7 +214,8 @@
 | A0 | baseline | `ALL21` | `load_data.FEATURES` | — | — |
 | A1 | H1 | `NO_VARIABILITY17` | 移除 ASTV、MSTV、ALTV、MLTV | PR-AUC 下降 | 下降幅度小於 seed SD |
 | A5 | H3 | `DROP_WIDTH20` | 移除 Width | 無可辨別差異 | 明顯下降 |
-| A6 | H3 | `PRUNED17` | 移除 Width、Min、Mode、Mean | 待觀察；預期差距在 seed SD 內 | 下降超過 seed SD |
+| A6 | H3 | `PRUNED18` | 移除 Width、Mode、Mean | 待觀察；預期差距在 seed SD 內 | 下降超過 seed SD |
+| A6b（選做） | H3 對照 | `PRUNED17` | 移除 Width、Min、Mode、Mean | 僅作對照，不是主結果 | — |
 | A3（選做） | H2′ | `DEC_SUM19` | DL、DS、DP 換成 `DEC_SUM` | 持平或下降 | 明顯上升 |
 | A2（選做） | H2′ | `NO_ACCDEC17` | 移除 AC、DL、DS、DP | PR-AUC 下降 | 下降幅度小於 seed SD |
 | A4、A7（選做） | — | `ALL21 + ACC_DEC`；移除全部直方圖特徵 | 探索用 | — | — |
@@ -185,5 +228,5 @@
 
 ## 尚待審查的討論題
 
-1. PRUNED17 要不要改成「先移除 Width 再分群」的 18 特徵版本？Fable 的看法：18 特徵版本的規則敘述較一致（每群都留代表）；但改動會讓 A6 的定義改變，需要 P2 本人與 GPT-6 決定。目前維持 GPT-6 R2 指定的 A0／A5／A6。
+1. （已決定，R5）H3 採用「先移除 Width 再分群」的 PRUNED18；PRUNED17 降為選做對照。Feature Set 定義仍待 P3／P5 確認。
 2. 驗證集只有 9 個 Pathologic exam，P5 如何呈現不確定性（例如對驗證集做 exam-level bootstrap）？

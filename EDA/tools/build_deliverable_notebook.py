@@ -172,7 +172,7 @@ md(r"""
 **Figure 1**　上排：Histogram，各類別自己加總為 1（避免 972 對 104 的不平衡讓 Pathologic 看不見）。下排：ECDF（小於等於某個值的累積比例）；黑色直線是兩條 ECDF 的最大垂直差距，也就是 KS Statistic。藍色為 Normal，橘色虛線為 Pathologic。
 
 **1. 分布有什麼不同？**
-ASTV 的 Pathologic 整體偏右（數值較高）。MLTV 的 Pathologic 大量集中在 0。MSTV 的 Pathologic 呈雙峰：一群很低、一群很高。ALTV 兩群大多是 0，只有部分 Pathologic 很高。
+ASTV 的 Pathologic 整體偏右（數值較高）。MLTV 的 Pathologic 大量集中在 0。MSTV 的 Pathologic 在低值與高值兩側各有一處集中。ALTV 兩群大多是 0，只有部分 Pathologic 很高。
 
 **2. 哪些差異有統計證據？**
 ASTV 中位數 40 對 65，KS = 0.71（95% CI 0.56–0.83）。MLTV = 0 的比例是 Normal 4% 對 Pathologic 51%，KS = 0.54。MSTV 的 KS 只有 0.36，ALTV 只有 0.22（數值見 Section 3 的表）。
@@ -278,7 +278,7 @@ md(r"""
 md(r"""
 ### 3.2 MSTV 為什麼 KS 低卻仍值得保留
 
-**目的**：解釋 Figure 1 中 Pathologic MSTV 的雙峰。先選出 Pathologic，再依「有沒有延長減速（DP > 0）」做描述性分組。
+**目的**：說明 Figure 1 中 Pathologic MSTV 為何在兩側各有集中。先選出 Pathologic，再依「有沒有延長減速（DP > 0）」做描述性分組。
 """)
 
 code(r"""
@@ -425,7 +425,7 @@ md(r"""
 
 **Distribution contrast and separability.** """ + P["Distribution contrast and separability."] + r"""
 
-**Figure 1.** """ + fig_cap + r"""（圖檔：`EDA/figures/fig1_variability_contrast.pdf`，即 Section 2 的 Figure 1。）
+**Figure 1.** """ + fig_cap + r"""（圖檔：`EDA/figures/fig1_variability_contrast.pdf`，即 Section 2 的 Figure 1；tex 內的路徑以 Repository Root 為基準。）
 
 """ + tab_md + r"""
 

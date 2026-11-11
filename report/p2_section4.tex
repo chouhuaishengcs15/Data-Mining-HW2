@@ -2,7 +2,9 @@
 % Section 4 -- Exploratory Feature Analysis (P2)
 % For I1: \input{p2_section4} inside the ACL template.
 % Requires: graphicx, booktabs, natbib (\citep, \citet).
-% Figure: EDA/figures/fig1_variability_contrast.pdf (PNG also available).
+% Figure path is relative to the repository root (EDA/figures/...). If the
+% main file is compiled elsewhere (e.g. Overleaf), keep the same folder
+% layout or set \graphicspath accordingly.
 % References: report/p2_refs.bib (keys campos2000ctg, huang2021interpretability).
 % Every number below is produced by `python EDA/p2_eda.py` from the
 % TRAINING portion only (EDA/outputs/*.csv) and is re-checked by the last
@@ -37,8 +39,8 @@ occurs in 62.5\% of Pathologic but 4.7\% of Normal segments. DP and the
 histogram mean rank next by KS, but their intervals are wide and their KS
 drops to 0.41 and 0.37 when the two largest Pathologic examinations are
 removed, so they partly reflect a few examinations.
-MSTV is bimodal in the Pathologic class. A descriptive split of the
-Pathologic segments by DP accounts for this: DP-present segments
+Pathologic MSTV values concentrate both below and above the Normal median.
+A descriptive split of the Pathologic segments by DP is consistent with this: DP-present segments
 ($\mathrm{DP}>0$; 65 segments from 12 examinations) have a median MSTV of 2.7,
 DP-absent segments ($\mathrm{DP}=0$; 39 segments from 18 examinations) of 0.3,
 against 1.2 for Normal. These subgroups are formed after conditioning on the
@@ -55,13 +57,14 @@ evidence for our split.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{fig1_variability_contrast.pdf}
+  \includegraphics[width=\textwidth]{EDA/figures/fig1_variability_contrast.pdf}
   \caption{FHR-variability features in the training portion. Top:
   histograms normalised within each class, so that the 972:104 imbalance does
   not distort the comparison. Bottom: empirical CDFs; the KS statistic is the
   largest vertical gap (black bar). Axes span the full observed range. ASTV
   and ALTV are percentages of time; UCI states no unit for MSTV and MLTV.
-  Pathologic MSTV is bimodal and 69\% of Pathologic ALTV values are zero.}
+  Pathologic MSTV values lie on both sides of the Normal median and 69\% of
+  Pathologic ALTV values are zero.}
   \label{fig:variability}
 \end{figure*}
 
@@ -110,7 +113,8 @@ removal of Width is lossless: the retained features linearly explain 93\% and
 that a non-linear detector is unaffected.
 
 \paragraph{Exploratory hypotheses.}
-These observations lead to two hypotheses, each tested in \S7--\S8 by changing
+These observations lead to two hypotheses, each of which will be tested in
+\S7--\S8 by changing
 only the feature set while the data split, autoencoder configuration, seeds
 and threshold protocol are held fixed, with validation PR-AUC as the primary
 metric.
@@ -118,12 +122,12 @@ metric.
 information that the other features do not replace; we expect removing it (17
 features) to lower detection performance, mainly on DP-absent Pathologic
 segments.
-\textbf{H3}: the redundancy-pruned 18-feature set retains detection
+\textbf{H3}: the redundancy-pruned 18-feature set will retain detection
 performance close to that of all 21 features; the 20-feature set without Width
-serves as the lossless reference.
+will serve as the lossless reference.
 H1 was formulated after inspecting training labels, whereas the pruning rule
 of H3 uses Normal segments only. We also examined replacing DL, DS and DP by
 their sum; the sum is less separable than DP alone (KS 0.40 vs.\ 0.60) because
 light decelerations are common in Normal segments (45\%), so this
 transformation is not carried forward. Both hypotheses are exploratory and
-remain to be verified; they are revisited in \S8.
+remain to be verified; they will be revisited in \S8.

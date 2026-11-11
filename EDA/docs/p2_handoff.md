@@ -54,7 +54,7 @@ NO_VARIABILITY17 = [f for f in FEATURES if f not in ("ASTV", "MSTV", "ALTV", "ML
 | `report/p2_section4.tex` | §4 英文內文（1 張 `figure*`、1 張表）；需要 `natbib` 的 `\citep`／`\citet` |
 | `report/p2_refs.bib` | §4 的兩筆 BibTeX（UCI Dataset、Huang et al. 2021） |
 | `EDA/P2_Section4_Deliverable.ipynb` | P2 主要交付 Notebook；第 7 節是與 tex 相同的英文內文，7.1 節自動核對數字 |
-| `EDA/figures/fig1_variability_contrast.pdf` | §4 的 Figure |
+| `EDA/figures/fig1_variability_contrast.pdf` | §4 的 Figure；tex 內的路徑以 Repository Root 為基準（`\input{report/p2_section4}`、`\bibliography{report/p2_refs}`） |
 | `EDA/figures/fig5_pathologic_phenotypes.pdf`、`fig4_spearman_heatmap.pdf`、`fig3_separability_ranking.pdf`、`figS1_all_features_ecdf.pdf` | 備用／附錄／簡報 |
 | `EDA/outputs/separability.csv` | 21 個特徵完整統計（附錄表） |
 | `EDA/docs/p2_section4_explanation.md` | 中文逐段解釋 |
