@@ -1,4 +1,4 @@
 ,n_segments,n_exams,LB,AC,DL,DP,ASTV,MSTV,ALTV,MLTV,Width,Min,Mean,Median,Variance,share_ASTV_ge_60
 Normal,972,158,132,0.002523,0,0,40,1.2,0,8.1,68,94,134,138,8,0.1626
-"Pathologic, DP = 0 (flat)",39,18,134,0,0,0,71,0.3,69,3.9,18,128,135,136,0,0.9487
-"Pathologic, DP > 0 (decelerative)",65,12,132,0,0.003348,0.002296,62,2.7,0,0,113,60,96,108,57,0.8308
+"Pathologic, DP-absent (DP = 0)",39,18,134,0,0,0,71,0.3,69,3.9,18,128,135,136,0,0.9487
+"Pathologic, DP-present (DP > 0)",65,12,132,0,0.003348,0.002296,62,2.7,0,0,113,60,96,108,57,0.8308

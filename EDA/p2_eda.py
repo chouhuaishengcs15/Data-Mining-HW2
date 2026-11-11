@@ -254,10 +254,15 @@ def presence_table(df: pd.DataFrame, n_boot: int = N_BOOT, seed: int = SEED) -> 
 
 
 def phenotype_table(df: pd.DataFrame) -> pd.DataFrame:
-    """Medians of Normal vs. two label-free sub-groups of Pathologic (DP > 0 or DP = 0)."""
+    """Medians of Normal vs. two descriptive subgroups of Pathologic: DP-present / DP-absent.
+
+    The subgroups are formed AFTER selecting on the Pathologic label and then splitting
+    on DP > 0. They are a description of the training data, not clinical subtypes and
+    not a label-free discovery.
+    """
     cols = ["LB", "AC", "DL", "DP", "ASTV", "MSTV", "ALTV", "MLTV", "Width", "Min", "Mean", "Median", "Variance"]
     grp = np.where(df.label == 0, "Normal",
-                   np.where(df.DP > 0, "Pathologic, DP > 0 (decelerative)", "Pathologic, DP = 0 (flat)"))
+                   np.where(df.DP > 0, "Pathologic, DP-present (DP > 0)", "Pathologic, DP-absent (DP = 0)"))
     t = df.groupby(grp)[cols].median()
     t.insert(0, "n_exams", df.groupby(grp).exam.nunique())
     t.insert(0, "n_segments", df.groupby(grp).size())
@@ -297,12 +302,20 @@ def redundancy(df: pd.DataFrame):
 
 
 def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8) -> dict:
-    """Label-free pruning rule for H-redundancy, fitted on Normal training rows only.
+    """Redundancy-guided HEURISTIC pruning for H3, fitted on Normal training rows only.
 
     Histogram features are clustered (complete linkage on 1 - |Spearman|, cut at
     1 - thr, so every pair inside a cluster has |rho| >= thr). Each cluster keeps its
     medoid (largest mean |rho| to the other members; ties -> first in FEATURES order).
-    Width is always dropped because Width = Max - Min exactly.
+    Width is then always dropped because Width = Max - Min exactly.
+
+    This is NOT a lossless reduction. Only dropping Width alone is lossless
+    (Width is a linear function of Max and Min). In the {Width, Min} cluster the
+    tie-break picks Width as medoid and Width is then force-dropped, so the cluster
+    keeps no member and Min is removed as well. With Width gone, Min cannot be
+    reconstructed from the kept features; `linear_r2_of_dropped_from_kept` reports how
+    much of each dropped feature a linear model on the kept 17 features explains
+    (Normal training rows).
     """
     from scipy.cluster.hierarchy import fcluster
     hist = FAMILY["histogram"]
@@ -320,7 +333,21 @@ def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8) -> dict:
             keep.append(((sub.sum() - 1) / (len(members) - 1)).idxmax())
     keep = [h for h in hist if h in keep and h != "Width"]
     return {"threshold_abs_spearman": thr, "clusters": clusters, "kept": keep,
-            "dropped": [h for h in hist if h not in keep]}
+            "dropped": [h for h in hist if h not in keep],
+            "lossless": False,
+            "note": "Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; "
+                    "dropping Width AND Min removes Min for good (it is not recoverable from Max alone)."}
+
+
+def linear_r2_from_kept(normal: pd.DataFrame, kept: list[str], dropped: list[str]) -> dict:
+    """R^2 of each dropped feature regressed (with intercept) on the kept features, Normal train."""
+    Z = (normal[FEATURES] - normal[FEATURES].mean()) / normal[FEATURES].std().replace(0, 1)
+    A = np.c_[np.ones(len(Z)), Z[kept].to_numpy()]
+    out = {}
+    for c in dropped:
+        beta, *_ = np.linalg.lstsq(A, Z[c].to_numpy(), rcond=None)
+        out[c] = round(float(1 - ((Z[c] - A @ beta) ** 2).sum() / ((Z[c] - Z[c].mean()) ** 2).sum()), 4)
+    return out
 
 
 # --------------------------------------------------------------------------- group probe
@@ -376,25 +403,32 @@ def fig_variability(df, sep):
               "MSTV": "MSTV (unit not stated)", "MLTV": "MLTV (unit not stated)"}
     fig, axes = plt.subplots(2, 4, figsize=(7.4, 3.7), sharey="row")
     for j, f in enumerate(feats):
-        hi = np.percentile(df[f], 99.5)
-        bins = np.linspace(df[f].min(), hi, 26)
+        # full observed range, no clipping: every training value is drawn
+        bins = np.linspace(df[f].min(), df[f].max(), 31)
         ax = axes[0, j]
-        ax.hist(np.clip(n[f], None, hi), bins=bins, weights=np.full(len(n), 1 / len(n)), color=C_NORMAL,
+        ax.hist(n[f], bins=bins, weights=np.full(len(n), 1 / len(n)), color=C_NORMAL,
                 alpha=0.55, edgecolor=SURFACE, lw=0.4)
-        ax.hist(np.clip(p[f], None, hi), bins=bins, weights=np.full(len(p), 1 / len(p)), histtype="step",
+        ax.hist(p[f], bins=bins, weights=np.full(len(p), 1 / len(p)), histtype="step",
                 color=C_PATH, lw=1.6)
         ax.set_title(f"{f}   KS = {sep.loc[f, 'KS']:.2f}", loc="left", color=INK)
         ax = axes[1, j]
         _ecdf(ax, n[f].to_numpy(), C_NORMAL, "-")
         _ecdf(ax, p[f].to_numpy(), C_PATH, "--")
+        # mark where the KS statistic is attained: the largest vertical gap between the ECDFs
+        xs = np.unique(df[f])
+        Fn = np.searchsorted(np.sort(n[f].to_numpy()), xs, side="right") / len(n)
+        Fp = np.searchsorted(np.sort(p[f].to_numpy()), xs, side="right") / len(p)
+        k = int(np.argmax(np.abs(Fn - Fp)))
+        ax.plot([xs[k], xs[k]], [Fn[k], Fp[k]], color=INK, lw=1.0, marker="_", ms=5)
         ax.set_xlim(axes[0, j].get_xlim())
         ax.set_xlabel(xlabel[f], fontsize=7)
     axes[0, 0].set_ylabel("share of class\n(per bin)")
     axes[1, 0].set_ylabel("cumulative share\nof class (ECDF)")
     handles = [plt.Rectangle((0, 0), 1, 1, color=C_NORMAL, alpha=0.55),
-               plt.Line2D([], [], color=C_PATH, lw=1.6, ls="--")]
-    fig.legend(handles, [f"Normal (n = {len(n)})", f"Pathologic (n = {len(p)})"], loc="upper center",
-               ncol=2, bbox_to_anchor=(0.5, 1.04))
+               plt.Line2D([], [], color=C_PATH, lw=1.6, ls="--"),
+               plt.Line2D([], [], color=INK, lw=1.0, marker="_", ms=5)]
+    fig.legend(handles, [f"Normal (n = {len(n)})", f"Pathologic (n = {len(p)})", "KS = largest ECDF gap"],
+               loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.04))
     fig.tight_layout()
     _save(fig, "fig1_variability_contrast")
 
@@ -515,9 +549,9 @@ def fig_phenotypes(df):
             ("Variance", "Mean", "Variance (FHR histogram variance)", "Mean (FHR histogram mean, bpm)", 0.4, 0.4))):
         ax.scatter(jit(n[fx], sx), jit(n[fy], sy), s=7, color=C_NORMAL, alpha=0.3, lw=0, label=f"Normal (n = {len(n)})")
         ax.scatter(jit(pd_[fx], sx), jit(pd_[fy], sy), s=26, marker="^", color=C_PATH, edgecolor=SURFACE, lw=0.5,
-                   label=f"Pathologic, DP > 0 (n = {len(pd_)})")
+                   label=f"Pathologic, DP-present (n = {len(pd_)})")
         ax.scatter(jit(pf[fx], sx), jit(pf[fy], sy), s=24, marker="s", facecolor="none", edgecolor=C_PATH, lw=1.1,
-                   label=f"Pathologic, DP = 0 (n = {len(pf)})")
+                   label=f"Pathologic, DP-absent (n = {len(pf)})")
         ax.set_xlabel(lx)
         ax.set_ylabel(ly)
     axes[0].set_xlim(0, 5)
@@ -558,6 +592,8 @@ def run(verbose: bool = True) -> dict:
     vif.to_csv(OUT / "vif_normal_train.csv", float_format="%.3f")
     pruning = prune_histogram(sp_norm)
     pruning["covariance_conditioning_normal_train"] = cond
+    kept17 = [f for f in FEATURES if f not in pruning["dropped"]]
+    pruning["linear_r2_of_dropped_from_kept"] = linear_r2_from_kept(df[df.label == 0], kept17, pruning["dropped"])
     (OUT / "histogram_pruning.json").write_text(json.dumps(pruning, indent=2))
 
     hist_kept = pruning["kept"]

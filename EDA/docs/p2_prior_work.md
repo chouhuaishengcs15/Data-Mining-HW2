@@ -42,7 +42,7 @@
 ## 2. 重點問題的回答
 
 **其他研究認為哪些特徵重要？**
-可讀到內文的來源中，被點名的有 ASTV、MSTV、MLTV、ALTV、AC、DP（B、E），以及 Mean／Mode／Median／Variance／DS 的極端區間（B 的病理規則）。**沒有任何一個我們實際讀到的來源提供 21 個原始特徵的數值化 SHAP／tree importance 排名。**
+可讀到內文的來源中，被點名的有 ASTV、MSTV、MLTV、ALTV、AC、DP（B、E），以及 Mean／Mode／Median／Variance／DS 的極端區間（B 的病理規則）。Huang et al. 2021 有量化結果（Spearman 相關係數與關聯規則的數值區間）。在我們實際讀到內文的來源中，沒有看到 21 個原始特徵的數值化 SHAP／tree importance 排名；evercloud 的排名在未讀取的圖檔裡，未讀全文的來源不在此結論範圍內。
 
 **用什麼技術選特徵？** Spearman／關聯規則／SEM（B）、PCA＋RF importance＋SHAP（C）、Autoencoder＋RFE（D）、SHAP＋LIME（E）。沒有看到 Mutual Information 或 KS。
 
@@ -80,14 +80,14 @@ FIGO 2015（Ayres-de-Campos, Spong & Chandraharan, Int J Gynecol Obstet 131:13�
 |---|---|---|---|---|
 | ASTV | B：與病理正相關；E：SHAP 前十 | KS 0.71 [0.56, 0.84]，中位數 40→65 | 一致 | 首要候選（H1） |
 | MSTV | B：與病理相關（0.5）；E：N–P 的 SHAP 差異不顯著 | 單向 AUC 0.59，但 \|z\| AUC 0.80；Pathologic 呈雙峰（0.3 與 2.7） | **表面矛盾、實際可解釋**：B 與 E 的落差正好符合「非單調」 | 保留；提醒單向指標會誤判 |
-| ALTV | B：與正常負相關 | KS 0.22 [0.14, 0.50]；只有平坦型很高（中位數 69） | 部分一致（外部含 Suspect，可能使 ALTV 顯得更重要） | 保留在 H1 群組內，不單獨主張 |
+| ALTV | B：與正常負相關 | KS 0.22 [0.14, 0.50]；只有 DP-absent 子群很高（中位數 69） | 部分一致（外部含 Suspect，可能使 ALTV 顯得更重要） | 保留在 H1 群組內，不單獨主張 |
 | MLTV | B、E：重要 | KS 0.54 [0.44, 0.68]；Pathologic 51% 為 0 | 一致 | H1 |
 | AC | B：與正常關聯最強；E：N–P 不顯著 | KS 0.50 [0.34, 0.67]；有加速的比例 67% vs 19% | 大致一致 | H2 群組 |
 | DP | B：DP>0.0028/s 為病理規則；E：前十 | KS 0.60 [0.29, 0.78]；出現率 4.7% vs 62.5%；但拿掉兩個最大 exam 後 KS 降到 0.41 | 一致，但**高度依賴少數 exam** | H2 群組；寫入限制 |
 | DS | B：DS>0.00094/s 為病理規則 | train 只有 7 筆非 0（Pathologic 6、Normal 1） | 方向一致、涵蓋率極低 | 不單獨主張 |
 | DL | 無來源點名 | KS 0.25；拿掉兩個最大 exam 後 0.08 | — | 弱 |
 | Mean／Median／Mode | B：Mode∈[60,99) 為病理規則；與 LB 共線 | KS 0.58／0.54／0.48；彼此 ρ 0.90–0.97 | 一致 | 冗餘群（H3），留一個即可 |
-| Variance | B：Variance>165 為病理規則 | 雙向（平坦型 0、減速型 57），\|z\| AUC 0.79 | 一致（B 只描述了高的一端） | 保留 |
+| Variance | B：Variance>165 為病理規則 | 雙向（DP-absent 子群 0、DP-present 子群 57），\|z\| AUC 0.79 | 一致（B 只描述了高的一端） | 保留 |
 | Width／Min／Max／Nmax | B：共線群；E：前十 | Width＝Max−Min 完全相等；Width–Min ρ=−0.89 | 一致 | H3：移除 Width |
 | LB | B：BCat | KS 0.22，\|z\| AUC 0.37（比隨機還差） | 不支持單獨使用 | 低優先 |
 | FM、UC、Nzeros、Tendency | 少或無 | KS 0.05–0.32 | — | 低優先 |
