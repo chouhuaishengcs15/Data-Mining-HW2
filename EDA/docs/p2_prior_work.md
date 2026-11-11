@@ -1,6 +1,6 @@
 # P2 Prior Work — 同一資料集（UCI CTG）的公開研究與實作
 
-- 整理：P2（Claude Code Fable），檢索日期 2026-11-10
+- 整理：P2 — Exploratory Feature Analysis，檢索日期 2026-11-10
 - 用途：提供 §2 Related Work 與 §4 假說的外部證據。**外部結論一律標為 External Evidence，不當成本組結果。**
 
 ## 0. 閱讀狀態（誠實揭露）

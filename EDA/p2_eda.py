@@ -317,7 +317,7 @@ def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8, drop_width_first: b
     much of each dropped feature a linear model on the kept 17 features explains
     (Normal training rows).
 
-    drop_width_first=True gives the PRUNED18 rule (main H3 definition since R5): Width is
+    drop_width_first=True gives the PRUNED18 rule (main H3 definition): Width is
     removed BEFORE clustering, so Min forms its own cluster and is kept. Every cluster
     then keeps one member; only Width, Mode and Mean are removed. Still a heuristic:
     dropping Width is lossless, dropping Mode and Mean is not.

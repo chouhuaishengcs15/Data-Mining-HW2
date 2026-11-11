@@ -1,22 +1,12 @@
 # P2 Feature Hypotheses 與 P5 Handoff
 
-- 撰寫：P2（Claude Code Fable）；初版 2026-11-10，R3、R5、Final 修訂 2026-11-11（依 GPT-6 審查）
+- 撰寫：P2 — Exploratory Feature Analysis；2026-11-10 初版，2026-11-11 修訂
 - 證據：`EDA/outputs/*.csv`（全部只用 train；`python EDA/p2_eda.py` 可重現）
 - 狀態：H1、H3 都是 **Hypothesis**，**Pending P5 Verification**；H2′ 是補充的負面觀察。
 - 正式定義：**H1 = `ALL21` 對 `NO_VARIABILITY17`；H3 = `ALL21` 對 `DROP_WIDTH20` 對 `PRUNED18`。** `PRUNED17` 只是選做對照。
 
 
-> **R5 更新（2026-11-11）**：H3 的主要特徵集合改為 **PRUNED18**（移除 Width、Mode、Mean；先移除 Width 再分群，Min 保留）。PRUNED17（另外移除 Min）保留為選做對照，不是主結果，也不得宣稱無資訊損失。主要比較為 `ALL21`、`DROP_WIDTH20`、`PRUNED18`（H3）與 `NO_VARIABILITY17`（H1）；定義見 `EDA/outputs/feature_sets.json`，尚待 P3／P5 確認。H1、H3 目前狀態皆為 **Pending P5 Verification**。下文的 Train-only 探針沒有測過 PRUNED18。
-
-## R3 修訂摘要
-
-| 修訂 | 原本的寫法 | 現在的寫法 |
-|---|---|---|
-| H3 的數學錯誤 | 「Min 可由 Width 與 Max 還原」 | Width 與 Min 同時移除後，Min **無法**還原。PRUNED17 是啟發式挑選，不是無損精簡 |
-| H3 的主張 | 「不損失效能」 | 「能否維持近似表現」待驗證；加入只移除 Width 的 20 特徵對照 |
-| H1 的主張 | 「變異度群是必要的」 | 「提供互補的偵測資訊」，待模型驗證 |
-| 子群命名 | 平坦型／減速型、「不需要標籤的規則」 | DP-absent／DP-present pathologic segments；分組前已用 Pathologic 標籤篩選 |
-| 探針的定位 | 列為支持證據 | 只供內部排序假說；它使用了訓練集的異常標籤 |
+> **特徵集合定義**：H3 的主要特徵集合為 **PRUNED18**（移除 Width、Mode、Mean；先移除 Width 再分群，Min 保留）。PRUNED17（另外移除 Min）保留為選做對照，不是主結果，也不得宣稱無資訊損失。主要比較為 `ALL21`、`DROP_WIDTH20`、`PRUNED18`（H3）與 `NO_VARIABILITY17`（H1）；定義見 `EDA/outputs/feature_sets.json`，尚待 P3／P5 確認。H1、H3 目前狀態皆為 **Pending P5 Verification**。下文的 Train-only 探針沒有測過 PRUNED18。
 
 ## 0. 先講結論
 
@@ -151,48 +141,6 @@
 6. **P5 Controlled Ablation**：`ALL21`、`DROP_WIDTH20`、`PRUNED18` 三組一起比（狀態：Pending P5 Verification）。
    - DROP_WIDTH20 對 ALL21：檢驗移除確定性冗餘是否完全無影響（理論上對線性模型無影響，對 Autoencoder 應該也很小）。
    - PRUNED18 對 DROP_WIDTH20：檢驗額外移除 Mode、Mean 的代價。
-7. **可能失敗原因**：非線性模型可能從加總特徵學到不同的東西，結果可能與 EDA 的單變數判讀不同；若如此應如實報告。
-
-## H3：Histogram Redundancy
-
-1. **研究問題**：依正常資料的相關性挑掉重複的直方圖特徵後，Autoencoder 能否維持相近的偵測表現？
-2. **Dataset Observation（Verified，train）**
-   - `Width = Max − Min` 在 train 每一列都完全成立（殘差 0），21 個特徵的共變異數矩陣秩為 20。
-   - Spearman：Mode–Median 0.97、Mean–Median 0.94、Mode–Mean 0.90、Width–Min −0.89、Width–Variance 0.82；跨群組 LB–Median 0.81。
-   - VIF（Normal-train）：Median 34.5、Mean 18.3、Mode 14.4、LB 9.0。
-3. **External Evidence**：Huang et al. 2021 列出共線群 {LB, Mode, Median, Mean} 與 {Width, Variance, Nmax, MSTV, Max, DL}。
-4. **Feature Design**（`EDA/outputs/histogram_pruning.json`）
-
-   規則（只用 Normal-train，不使用異常標籤；門檻 0.8 事先固定、沒有調過）：
-   1. 計算 10 個直方圖特徵之間的 |Spearman|。
-   2. Complete linkage 分群，同群內任兩個特徵 |ρ| ≥ 0.8。
-   3. 每群保留 medoid（與同群其他成員平均 |ρ| 最高者；平手取欄位順序在前者）。
-   4. Width 一律移除。
-
-   結果：
-   - {Mode, Mean, Median} → 保留 Median。
-   - {Width, Min} → 平手規則選了 Width 當代表，第 4 步又把 Width 移除，所以**這一群沒有留下任何成員**。
-   - `PRUNED17 = ALL21 − {Width, Min, Mode, Mean}`。
-
-   **這三種移除的性質不同，必須分開說：**
-
-   | 移除 | 性質 | 資訊損失 |
-   |---|---|---|
-   | 只移除 Width（`DROP_WIDTH20`） | 確定性冗餘：Width = Max − Min | 無。可由保留的 Max、Min 精確算回 |
-   | 再移除 Mode、Mean | 高度相關的近似重複 | 有，但小：保留的 17 個特徵可線性解釋其變異的 93%、94% |
-   | 再移除 Min | 規則步驟順序造成的結果 | **有**：Width 已不在，Min 無法由 Max 還原（Normal-train 中 Min–Max ρ=−0.25）。保留的 17 個特徵只能線性解釋 Min 變異的 80% |
-
-   所以 PRUNED17 是**依冗餘程度做的啟發式特徵挑選**，不是無損精簡。它是否影響偵測表現，只能由實驗回答。
-
-   已知的規則缺陷（留給審查決定，本輪不改實驗設定）：如果先移除 Width 再分群，Min 會自成一群而被保留，得到 18 個特徵（移除 Width、Mode、Mean）。這個版本每一群都保留代表，敘述上比較乾淨。是否改用，見文末討論題。
-
-5. **假設**
-   - H0：PRUNED17 的驗證集 PR-AUC 與 ALL21 的差距在 seed 變動範圍內。
-   - H1：PRUNED17 明顯較差，代表被移除的 Min／Mean／Mode 帶有模型用得到的資訊。
-   - 注意：「差距在 seed 變動範圍內」只能寫成「未觀察到差異」，不能寫成「證明等效」。
-6. **P5 Controlled Ablation**：A0（ALL21）、A5（DROP_WIDTH20）、A6（PRUNED17）三組一起比。
-   - A5 對 A0：檢驗移除確定性冗餘是否完全無影響（理論上對線性模型無影響，對 Autoencoder 應該也很小）。
-   - A6 對 A5：檢驗額外移除 Min、Mode、Mean 的代價。
 7. **可能失敗原因**：Mean（單變數 KS 0.58）在 DP-present 子群是明顯的訊號。若 PRUNED18 變差而 DROP_WIDTH20 不變，結論是「只有確定性冗餘可以安全移除」。
 
 ---
@@ -226,7 +174,7 @@
 
 **欄位名稱**：全部沿用 `load_data.FEATURES`。衍生特徵的程式在 `EDA/p2_eda.py::add_derived`。
 
-## 尚待審查的討論題
+## 尚待討論的問題
 
-1. （已決定，R5）H3 採用「先移除 Width 再分群」的 PRUNED18；PRUNED17 降為選做對照。Feature Set 定義仍待 P3／P5 確認。
+1. （已決定）H3 採用「先移除 Width 再分群」的 PRUNED18；PRUNED17 降為選做對照。Feature Set 定義仍待 P3／P5 確認。
 2. 驗證集只有 9 個 Pathologic exam，P5 如何呈現不確定性（例如對驗證集做 exam-level bootstrap）？

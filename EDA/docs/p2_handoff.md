@@ -1,6 +1,6 @@
 # P2 Handoff — 給 P3、P5、I1（以及 P1 的回報事項）
 
-- 日期：2026-11-10；R3、R5 修訂 2026-11-11。主要交付 Notebook：`EDA/P2_Section4_Deliverable.ipynb`。分支 `p2-feature-eda`（尚未 push，待 P2 本人審查）
+- 撰寫：P2 — Exploratory Feature Analysis；2026-11-10 初版，2026-11-11 修訂。主要交付 Notebook：`EDA/P2_Section4_Deliverable.ipynb`。分支 `p2-feature-eda`
 - 重現：`pip install -r EDA/requirements.txt && python EDA/p2_eda.py`（約 1 分鐘，seed 42）
 - 所有結論只用 train；細節見 `p2_hypotheses.md`
 
@@ -12,11 +12,11 @@
 |---|---|---|
 | `ALL21` | `FEATURES` | baseline，請先以此完成主要模型 |
 | `DROP_WIDTH20` | `ALL21` 移除 `Width` | H3 的對照：只移除確定性冗餘（Width = Max − Min），沒有資訊損失 |
-| `PRUNED18` | `ALL21` 移除 `Width, Mode, Mean` | **H3 主要集合**（R5 起）。規則只用 Normal-train：先移除 Width，其餘 Histogram 特徵依 \|ρ\| ≥ 0.8 分群、每群留一個。啟發式挑選，不是無損精簡（保留特徵線性解釋 Mode、Mean 變異的 93%、94%） |
+| `PRUNED18` | `ALL21` 移除 `Width, Mode, Mean` | **H3 主要集合**。規則只用 Normal-train：先移除 Width，其餘 Histogram 特徵依 \|ρ\| ≥ 0.8 分群、每群留一個。啟發式挑選，不是無損精簡（保留特徵線性解釋 Mode、Mean 變異的 93%、94%） |
 | `NO_VARIABILITY17` | `ALL21` 移除 `ASTV, MSTV, ALTV, MLTV` | H1 |
 | `PRUNED17`（選做） | `ALL21` 移除 `Width, Min, Mode, Mean` | 較早的規則，僅作選做對照；Width 與 Min 同時移除後 Min 無法還原，**不得宣稱無資訊損失** |
 
-以上定義是 GPT-6 R4／R5 審查後的建議，**尚未與 P3／P5 確認**。機器可讀版本：`EDA/outputs/feature_sets.json`（由 `p2_eda.py` 產生）。
+以上定義是 P2 的建議，**尚未與 P3／P5 確認**。機器可讀版本：`EDA/outputs/feature_sets.json`（由 `p2_eda.py` 產生）。
 
 ```python
 DROP_WIDTH20     = [f for f in FEATURES if f != "Width"]
@@ -62,7 +62,7 @@ NO_VARIABILITY17 = [f for f in FEATURES if f not in ("ASTV", "MSTV", "ALTV", "ML
 | `EDA/docs/p2_prior_work.md` | Related Work 可用的來源與閱讀狀態 |
 
 - 可寫進 §9 Limitations：Pathologic 集中在少數檢查（2 次檢查佔 train 的 35%）；資料沒有孕婦 ID，無法排除同一人多次檢查；標籤是專家共識而非新生兒結局；排除 Suspect 使指標偏樂觀。
-- AI Usage Statement 可用的描述：P2 使用 Claude Code（Claude Fable 5.2）讀取 P1 的程式與資料、撰寫並執行 `EDA/p2_eda.py`、檢索並摘要外部文獻、起草 §4 與相關文件；統計數字皆由程式產生並可重現；外部文獻的閱讀狀態逐項標註，未讀到全文者未引用其內容；假說的取捨由 P2 審查後決定。
+- AI Usage Statement 可用的描述：P2 使用 Claude Code（Claude Fable 5.2）讀取 P1 的程式與資料、撰寫並執行 `EDA/p2_eda.py`、檢索並摘要外部文獻、起草 §4 與相關文件；統計數字皆由程式產生並可重現；外部文獻的閱讀狀態逐項標註，未讀到全文者未引用其內容；修訂時另參考了 GPT-6 對草稿的審查意見；假說的取捨由 P2 審查後決定。
 
 ## 與 P3 程式的介面（P2 只提需求，不改 P3 的檔案）
 
@@ -71,7 +71,7 @@ NO_VARIABILITY17 = [f for f in FEATURES if f not in ("ASTV", "MSTV", "ALTV", "ML
 - 需求：P3 的訓練腳本能接受特徵集合名稱（例如 `--feature-set ALL21|DROP_WIDTH20|PRUNED18|NO_VARIABILITY17`），並讓輸出的逐特徵誤差檔跟著所選欄位。是否採用、如何實作由 P3 決定。
 - 提醒：若最終異常分數是重建誤差的 Mahalanobis 距離，逐特徵的平方重建誤差排名不等於該分數的精確歸因；用它解釋示警時請稱為 reconstruction-error diagnostic。
 - 不要為了 P2 的消融執行 P3 的最終測試流程。
-- 未另寫 `p2_p3_integration.md`：需求已集中在本節與 `feature_sets.json`。本機分支仍未與 `main` 合併。
+- 對 P3 的需求集中在本節與 `EDA/outputs/feature_sets.json`。
 
 ## 回報 P1（不需要改切分）
 

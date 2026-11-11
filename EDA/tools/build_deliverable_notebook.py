@@ -383,7 +383,7 @@ print("機器可讀版本：EDA/outputs/feature_sets.json")
 """)
 
 md(r"""
-**說明**：以上四組 Feature Set 是 GPT-6 審查後建議的實驗定義，**尚未與 P3／P5 確認**。P3 目前的程式固定使用 21 個特徵，要由 P3 決定如何加入 Feature Set 選項；P2 不修改 P3 的程式。
+**說明**：以上四組 Feature Set 是 P2 建議的實驗定義，**尚未與 P3／P5 確認**。P3 目前的程式固定使用 21 個特徵，要由 P3 決定如何加入 Feature Set 選項；P2 不修改 P3 的程式。
 """)
 
 md(r"""

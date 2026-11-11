@@ -1,6 +1,6 @@
 # P2 Dataset Brief — UCI Cardiotocography（CTG）
 
-- 撰寫：P2（Claude Code Fable 協作），2026-11-10
+- 撰寫：P2 — Exploratory Feature Analysis，2026-11-10
 - 依據：P1 commit `c2b70a4`（`data/README.md`、`data/load_data.py`、`data/make_split.py`、`data/raw/CTG.xls`、`data/splits/*.csv`）
 - 數字來源：`EDA/outputs/audit_train.json`（由 `python EDA/p2_eda.py` 產生）以及本文 §3 的稽核指令
 
