@@ -1,0 +1,27 @@
+{
+  "hidden": [
+    16,
+    8
+  ],
+  "epochs": 200,
+  "batch_size": 64,
+  "lr": 0.001,
+  "weight_decay": 1e-05,
+  "score": "mahalanobis",
+  "threshold": "best_f1",
+  "percentile": 95,
+  "budget": 10,
+  "contamination": 0.0,
+  "feature_set": "DROP_WIDTH20",
+  "clip": 0,
+  "cov": "empirical",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "final": false,
+  "name": null
+}

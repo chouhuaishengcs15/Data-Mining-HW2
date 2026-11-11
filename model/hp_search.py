@@ -3,8 +3,9 @@
 Usage (from the repo root):
     python model/hp_search.py
     python model/hp_search.py --score mse
+    python model/hp_search.py --feature-set ALL21
 
-Output: results/tier2/hp_search_<score>.csv, ranked by mean val PR-AUC.
+Output: results/tier2/hp_search_<score>_<feature set>.csv, ranked by mean val PR-AUC.
 """
 import argparse
 import contextlib
@@ -27,16 +28,18 @@ GRID = {
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--score", default="mahalanobis", choices=["mse", "cosine", "mahalanobis"])
+    p.add_argument("--feature-set", default="DROP_WIDTH20")
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     a = p.parse_args()
 
     rows = []
     for hidden, epochs in itertools.product(GRID["hidden"], GRID["epochs"]):
-        name = f"hp/{a.score}_h{'-'.join(map(str, hidden))}_e{epochs}"
+        name = f"hp/{a.score}_{a.feature_set}_h{'-'.join(map(str, hidden))}_e{epochs}"
         args = argparse.Namespace(
             hidden=hidden, epochs=epochs, batch_size=64, lr=1e-3, weight_decay=1e-5,
             score=a.score, threshold="best_f1", percentile=95, budget=10,
-            contamination=0.0, seeds=a.seeds, final=False, name=name)
+            contamination=0.0, feature_set=a.feature_set, clip=0, cov="empirical",
+            seeds=a.seeds, final=False, name=name)
         with contextlib.redirect_stdout(io.StringIO()):
             t2.run(args)
         m = pd.read_csv(t2.ROOT / "results" / "tier2" / name / "metrics.csv")
@@ -49,11 +52,12 @@ def main():
               f"  ROC-AUC {row['roc_auc_mean']:.3f}  F1 {row['f1_mean']:.3f}", flush=True)
 
     df = pd.DataFrame(rows).sort_values("pr_auc_mean", ascending=False)
-    out = t2.ROOT / "results" / "tier2" / f"hp_search_{a.score}.csv"
+    out = t2.ROOT / "results" / "tier2" / f"hp_search_{a.score}_{a.feature_set}.csv"
     df.to_csv(out, index=False)
     print(f"\nsaved to {out.relative_to(t2.ROOT)}\n")
     print(df.head(5).to_string(index=False, float_format="%.3f"))
 
 
 if __name__ == "__main__":
+    t2.torch.set_num_threads(1)   # same arithmetic as tier2_autoencoder.py
     main()

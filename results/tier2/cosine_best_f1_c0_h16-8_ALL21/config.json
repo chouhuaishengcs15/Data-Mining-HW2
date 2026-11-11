@@ -12,6 +12,9 @@
   "percentile": 95,
   "budget": 10,
   "contamination": 0.0,
+  "feature_set": "ALL21",
+  "clip": 0,
+  "cov": "empirical",
   "seeds": [
     0,
     1,
