@@ -4,6 +4,9 @@
 - 證據：`EDA/outputs/*.csv`（全部只用 train；`python EDA/p2_eda.py` 可重現）
 - 狀態：三個都是 **Hypothesis**，尚未經 P5 的正式消融驗證。
 
+
+> **R5 更新（2026-11-11）**：H3 的主要特徵集合改為 **PRUNED18**（移除 Width、Mode、Mean；先移除 Width 再分群，Min 保留）。下文的 PRUNED17（另外移除 Min）保留為選做對照，不是主結果，也不得宣稱無資訊損失。主要比較為 `ALL21`、`DROP_WIDTH20`、`PRUNED18`（H3）與 `NO_VARIABILITY17`（H1）；定義見 `EDA/outputs/feature_sets.json`，尚待 P3／P5 確認。H1、H3 目前狀態皆為 **Pending P5 Verification**。下文的 Train-only 探針沒有測過 PRUNED18。
+
 ## R3 修訂摘要
 
 | 修訂 | 原本的寫法 | 現在的寫法 |
@@ -75,8 +78,8 @@
 
 1. **研究問題**：ASTV、MSTV、ALTV、MLTV 是否提供事件與直方圖特徵補不上的偵測資訊？
 2. **Dataset Observation（Verified，train）**
-   - ASTV：KS 0.71（exam-bootstrap 95% CI 0.56–0.84），中位數 40→65；拿掉兩個最大 Pathologic exam 後仍有 0.66。
-   - MLTV：KS 0.54（0.44–0.68）；Pathologic 51% 為 0，Normal 4%。
+   - ASTV：KS 0.71（exam-bootstrap 95% CI 0.56–0.83），中位數 40→65；拿掉兩個最大 Pathologic exam 後仍有 0.66。
+   - MLTV：KS 0.54（0.44–0.67）；Pathologic 51% 為 0，Normal 4%。
    - MSTV：雙峰，單向 AUC 0.59、|z| AUC 0.80。ALTV：整體 KS 0.22；DP-absent 子群中位數 69。
    - 四個特徵彼此不冗餘：ASTV–MSTV ρ=−0.36、ALTV–MLTV ρ=−0.02、ASTV–ALTV ρ=0.23。
 3. **External Evidence**：Huang et al. 2021 報告 MSTV、MLTV、ASTV 與病理的 Spearman 相關（0.5、0.39、0.34，待對照原文）；UH capstone 2025 的 SHAP 前十包含 ASTV、MSTV、MLTV，同時指出 MSTV 在 Normal–Pathologic 之間差異不顯著，與我們看到的非單調現象相符。

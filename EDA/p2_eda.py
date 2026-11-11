@@ -301,7 +301,7 @@ def redundancy(df: pd.DataFrame):
     return sp_all, pe_all, sp_norm, pairs, pd.Series(vif, name="VIF_normal_train"), cond
 
 
-def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8) -> dict:
+def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8, drop_width_first: bool = False) -> dict:
     """Redundancy-guided HEURISTIC pruning for H3, fitted on Normal training rows only.
 
     Histogram features are clustered (complete linkage on 1 - |Spearman|, cut at
@@ -316,9 +316,14 @@ def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8) -> dict:
     reconstructed from the kept features; `linear_r2_of_dropped_from_kept` reports how
     much of each dropped feature a linear model on the kept 17 features explains
     (Normal training rows).
+
+    drop_width_first=True gives the PRUNED18 rule (main H3 definition since R5): Width is
+    removed BEFORE clustering, so Min forms its own cluster and is kept. Every cluster
+    then keeps one member; only Width, Mode and Mean are removed. Still a heuristic:
+    dropping Width is lossless, dropping Mode and Mean is not.
     """
     from scipy.cluster.hierarchy import fcluster
-    hist = FAMILY["histogram"]
+    hist = [h for h in FAMILY["histogram"] if not (drop_width_first and h == "Width")]
     d = 1 - sp_norm.loc[hist, hist].abs().to_numpy()
     np.fill_diagonal(d, 0)
     lab = fcluster(linkage(squareform(d, checks=False), "complete"), 1 - thr, "distance")
@@ -332,11 +337,26 @@ def prune_histogram(sp_norm: pd.DataFrame, thr: float = 0.8) -> dict:
             sub = sp_norm.loc[members, members].abs()
             keep.append(((sub.sum() - 1) / (len(members) - 1)).idxmax())
     keep = [h for h in hist if h in keep and h != "Width"]
+    note = ("Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; "
+            "Mode and Mean are near-duplicates of Median, not exact copies."
+            if drop_width_first else
+            "Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; "
+            "dropping Width AND Min removes Min for good (it is not recoverable from Max alone).")
     return {"threshold_abs_spearman": thr, "clusters": clusters, "kept": keep,
-            "dropped": [h for h in hist if h not in keep],
-            "lossless": False,
-            "note": "Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; "
-                    "dropping Width AND Min removes Min for good (it is not recoverable from Max alone)."}
+            "dropped": [h for h in FAMILY["histogram"] if h not in keep],
+            "lossless": False, "note": note}
+
+
+def feature_sets(pruned18_dropped: list[str], pruned17_dropped: list[str]) -> dict[str, list[str]]:
+    """Named feature sets handed to P3/P5 (column order follows P1's FEATURES)."""
+    drop = lambda names: [f for f in FEATURES if f not in names]  # noqa: E731
+    return {
+        "ALL21": list(FEATURES),
+        "DROP_WIDTH20": drop(["Width"]),                 # lossless reference for H3
+        "PRUNED18": drop(pruned18_dropped),              # H3 main set (Normal-only heuristic)
+        "NO_VARIABILITY17": drop(FAMILY["variability"]),  # H1
+        "PRUNED17_optional": drop(pruned17_dropped),     # earlier rule, optional comparison only
+    }
 
 
 def linear_r2_from_kept(normal: pd.DataFrame, kept: list[str], dropped: list[str]) -> dict:
@@ -392,7 +412,8 @@ def _ecdf(ax, x, color, ls, label=None):
 
 def _save(fig, name):
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"{name}.{ext}")
+        # fixed PDF metadata so that re-running does not change the file bytes
+        fig.savefig(FIG / f"{name}.{ext}", metadata={"CreationDate": None} if ext == "pdf" else None)
     plt.close(fig)
 
 
@@ -594,7 +615,14 @@ def run(verbose: bool = True) -> dict:
     pruning["covariance_conditioning_normal_train"] = cond
     kept17 = [f for f in FEATURES if f not in pruning["dropped"]]
     pruning["linear_r2_of_dropped_from_kept"] = linear_r2_from_kept(df[df.label == 0], kept17, pruning["dropped"])
+    # PRUNED18 (main H3 set): Width removed first, then the same clustering rule.
+    p18 = prune_histogram(sp_norm, drop_width_first=True)
+    kept18 = [f for f in FEATURES if f not in p18["dropped"]]
+    p18["linear_r2_of_dropped_from_kept"] = linear_r2_from_kept(df[df.label == 0], kept18, p18["dropped"])
+    pruning["pruned18"] = p18
     (OUT / "histogram_pruning.json").write_text(json.dumps(pruning, indent=2))
+    fsets = feature_sets(p18["dropped"], pruning["dropped"])
+    (OUT / "feature_sets.json").write_text(json.dumps(fsets, indent=2))
 
     hist_kept = pruning["kept"]
     non_hist = [f for f in FEATURES if FAMILY_OF[f] != "histogram"]
@@ -640,7 +668,7 @@ def run(verbose: bool = True) -> dict:
         print(f"base rate = {probe.attrs['base_rate']:.4f}")
         print(probe.drop(columns="features").round(3).to_string())
     return {"df": df, "audit": aud, "sep": sep, "presence": pres, "pairs": pairs, "vif": vif,
-            "pruning": pruning, "probe": probe, "phenotypes": pheno, "spearman": sp_all}
+            "pruning": pruning, "feature_sets": fsets, "probe": probe, "phenotypes": pheno, "spearman": sp_all}
 
 
 if __name__ == "__main__":

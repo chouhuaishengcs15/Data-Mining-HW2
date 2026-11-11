@@ -225,7 +225,7 @@ Bootstrap 的做法是：從手上的資料裡「抽了放回」，重複抽出�
 
 | 特徵 | KS | 以片段重抽的區間 | 以檢查重抽的區間 |
 |---|---|---|---|
-| ASTV | 0.71 | 0.64–0.77 | 0.56–0.84 |
+| ASTV | 0.71 | 0.64–0.77 | 0.56–0.83 |
 | DP | 0.60 | 0.51–0.68 | 0.29–0.78 |
 
 以片段重抽的區間窄很多，那是假的自信。DP 的差別特別大，因為有 DP 的病理片段只來自 12 次檢查。
@@ -349,7 +349,7 @@ Median  0.96   0.93     —
 | §4 裡的敘述 | 檔案 | 欄位 |
 |---|---|---|
 | ASTV median 40 vs 65 | `separability.csv` | `normal_median`、`path_median` |
-| KS 0.71 [0.56, 0.84] | `separability.csv` | `KS`、`KS_ci_lo`、`KS_ci_hi` |
+| KS 0.71 [0.56, 0.83] | `separability.csv` | `KS`、`KS_ci_lo`、`KS_ci_hi` |
 | DP 62.5% vs 4.7% | `event_presence.csv` | `share_with_event` |
 | 拿掉兩次檢查後 0.41、0.37 | `separability.csv` | `KS_wo_top2` |
 | 以片段重抽 0.51–0.68 | `separability.csv` | `KS_rowboot_lo`、`KS_rowboot_hi` |
