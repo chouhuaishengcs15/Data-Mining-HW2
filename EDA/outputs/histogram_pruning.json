@@ -1,0 +1,105 @@
+{
+  "threshold_abs_spearman": 0.8,
+  "clusters": [
+    [
+      "Mode",
+      "Mean",
+      "Median"
+    ],
+    [
+      "Max"
+    ],
+    [
+      "Width",
+      "Min"
+    ],
+    [
+      "Variance"
+    ],
+    [
+      "Nmax"
+    ],
+    [
+      "Nzeros"
+    ],
+    [
+      "Tendency"
+    ]
+  ],
+  "kept": [
+    "Max",
+    "Nmax",
+    "Nzeros",
+    "Median",
+    "Variance",
+    "Tendency"
+  ],
+  "dropped": [
+    "Width",
+    "Min",
+    "Mode",
+    "Mean"
+  ],
+  "lossless": false,
+  "note": "Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; dropping Width AND Min removes Min for good (it is not recoverable from Max alone).",
+  "covariance_conditioning_normal_train": {
+    "cov_min_eigenvalue_all21": 4.146923426680148e-16,
+    "cov_max_eigenvalue_all21": 4.851715053419877,
+    "rank_all21": 20
+  },
+  "linear_r2_of_dropped_from_kept": {
+    "Width": 0.8873,
+    "Min": 0.7994,
+    "Mode": 0.9286,
+    "Mean": 0.9434
+  },
+  "pruned18": {
+    "threshold_abs_spearman": 0.8,
+    "clusters": [
+      [
+        "Mode",
+        "Mean",
+        "Median"
+      ],
+      [
+        "Max"
+      ],
+      [
+        "Min"
+      ],
+      [
+        "Variance"
+      ],
+      [
+        "Nmax"
+      ],
+      [
+        "Nzeros"
+      ],
+      [
+        "Tendency"
+      ]
+    ],
+    "kept": [
+      "Min",
+      "Max",
+      "Nmax",
+      "Nzeros",
+      "Median",
+      "Variance",
+      "Tendency"
+    ],
+    "dropped": [
+      "Width",
+      "Mode",
+      "Mean"
+    ],
+    "lossless": false,
+    "note": "Heuristic selection. Width = Max - Min, so dropping Width alone loses nothing; Mode and Mean are near-duplicates of Median, not exact copies.",
+    "linear_r2_of_dropped_from_kept": {
+      "Width": 1.0,
+      "Mode": 0.9287,
+      "Mean": 0.9437
+    }
+  }
+}
