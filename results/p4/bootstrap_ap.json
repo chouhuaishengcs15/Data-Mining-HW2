@@ -1,0 +1,13 @@
+{
+  "comparison": "Tier 3 minus Tier 2, mean of five seed-level AP differences",
+  "test_rows": 378,
+  "exams": 75,
+  "draws": 10000,
+  "skipped": 0,
+  "rng_seed": 20261114,
+  "observed_gap": 0.27638864455678136,
+  "percentile_95_ci": [
+    0.0701217951685033,
+    0.5825898411158478
+  ]
+}

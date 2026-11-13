@@ -217,3 +217,53 @@ python model/hp_search.py                                        # 超參數搜�
   - 錯誤案例：在 `final_mahalanobis_best_f2_DROP_WIDTH20/scores.csv` 找 `split=test` 中 `label=1, pred=0`（漏報）和 `label=0, pred=1`（誤報）。`pred` 是 F2 規則；要用 F1 規則，從 `threshold_comparison.csv` 取 τ 重算。
   - 模型解釋：`feature_errors.csv` 可以看出一筆資料是哪幾個特徵重建得特別差。依 P2 的提醒，報告裡請稱為 reconstruction-error diagnostic，它不是 Mahalanobis 分數的精確拆解。
 - **給 W1**：val 的 35 筆異常只來自 9 次檢查，所以超參數之間、特徵集合之間的小差距不太可信，可以寫進限制。
+
+---
+
+# Tier 1 與 Tier 3：方法比較（P4）
+
+兩種方法均透過 `data/load_data.py` 使用共用切分，並在驗證集以最佳 F₂ 選擇各自的警示門檻。測試集固定為 378 筆片段，其中 37 筆為 Pathologic。
+
+## Tier 1 簡單基準 · ASTV 門檻
+
+ASTV 是胎心率短期變異異常的時間百分比。依訓練集的探索分析，直接以 ASTV 作為異常分數。驗證集選出的門檻為 59，達到門檻即發出警示。此規則無模型權重，逐筆輸出的 `seed` 留空。
+
+## Tier 3 強力參考 · 監督式 XGBoost
+
+使用排除 Width 後的 20 個特徵，並以訓練集的 972 筆 Normal 與 104 筆 Pathologic 擬合。搜尋最大深度 {2, 4}、學習率 {0.03, 0.10} 和正類權重 {1, 972/104} 的八種組合，固定 200 棵樹。以 seeds 0–4 的驗證集平均 AP 選出深度 2、學習率 0.03、正類權重 1。各 seed 的門檻分別以驗證集最佳 F₂ 選定。
+
+## 執行與輸出
+
+需要 NumPy、pandas、scikit-learn，Tier 3 另需 XGBoost 3.4.2。從 repo 根目錄執行：
+
+```bash
+python model/tier1_baseline.py
+python model/tier3_xgboost.py
+# 重現正式測試結果時加上 --final
+python model/tier1_baseline.py --final
+python model/tier3_xgboost.py --final
+```
+
+Tier 1 輸出至 `results/tier1/astv/`，Tier 3 輸出至 `results/tier3/xgboost/`。逐筆結果沿用 `row_id, seed, split, label, score, tau, pred` 欄位。Tier 3 的 `hp_search.csv` 和 `tuning.json` 記錄驗證集搜尋和最終設定。其 `batch_ms_per_row` 為批次時間除以筆數。
+
+| 方法 | Test AP | Test F₂ |
+|---|---:|---:|
+| Tier 1 ASTV | 0.6495 | 0.6391 |
+| Tier 3 XGBoost | 0.8417 ± 0.0032 | 0.8063 ± 0.0072 |
+
+Tier 3 回報五個 seeds 的平均值 ± 標準差。相較 Tier 2 最終結果，Tier 3 的 Test AP 高 0.2764。以檢查為單位進行 10,000 次配對 bootstrap，95% 信賴區間為 [0.0701, 0.5826]。
+
+## 配對 bootstrap 與同機計時
+
+評估工具放在 `model/P4/`，結果寫入 `results/p4/`。在 repo 根目錄執行：
+
+```bash
+python model/P4/bootstrap_ap.py
+python model/P4/benchmark.py 1
+python model/P4/benchmark.py 2
+python model/P4/benchmark.py 3
+```
+
+- `bootstrap_ap.py` 讀取 Tier 2、3 已存的逐筆 Test 分數與共用的檢查 ID，輸出 `bootstrap_ap.json`。
+- `benchmark.py` 使用單執行緒 CPU，分別量測模型擬合、驗證集門檻校準，以及驗證集逐筆預測（batch size = 1）。Tier 2 需 PyTorch，Tier 3 需 XGBoost 與已存的參數搜尋結果，計時工具另需 `threadpoolctl`。各 Tier 輸出 `timing_tier1.csv`、`timing_tier2.csv` 或 `timing_tier3.csv`。三份結果齊全時產生 `timing_summary.csv`。
+- 報告的單筆推論時間引用 `timing_summary.csv` 的 `single_row_ms`。提交的計時結果是在 MacBook Air（Apple M4，macOS 15.7.3）上量測的。
