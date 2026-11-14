@@ -6,7 +6,7 @@ from sklearn.metrics import average_precision_score,roc_auc_score,fbeta_score,pr
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-R=Path(__file__).resolve().parents[1];SRC=R/'results/tier2/final_mahalanobis_best_f2_DROP_WIDTH20';O=R/'results/p5_analysis';O.mkdir(exist_ok=True)
+R=Path(__file__).resolve().parents[1];SRC=R/'results/tier2/final_mahalanobis_best_f2_DROP_WIDTH20';O=R/'results/p5/analysis';O.mkdir(exist_ok=True)
 s=pd.read_csv(SRC/'scores.csv');s=s[s.split=='test'].copy();raw=pd.read_csv(R/'data/splits/test.csv');train=pd.read_csv(R/'data/splits/train.csv');normal=train[train.label==0]
 e=pd.read_csv(SRC/'feature_errors.csv');e=e[e.split=='test'];cols=[x for x in e if x not in ['row_id','seed','split']]
 assert len(s)==378*5 and not s.duplicated(['row_id','seed']).any()

@@ -11,7 +11,7 @@ import sklearn,torch
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-OUT=ROOT/'results'/'p5_ablation'
+OUT=ROOT/'results'/'p5'/'ablation'
 OUT.mkdir(parents=True,exist_ok=True)
 torch.set_num_threads(1)
 args=SimpleNamespace(hidden=[16,8],epochs=200,batch_size=64,lr=.001,weight_decay=1e-5,threshold="best_f2")
