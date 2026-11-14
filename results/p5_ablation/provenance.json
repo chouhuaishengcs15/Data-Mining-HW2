@@ -1,0 +1,37 @@
+{
+  "commit": "63215a4838b8f2608611d157f9808c199192965a",
+  "python": "3.10.19",
+  "torch": "2.1.2",
+  "numpy": "1.24.4",
+  "pandas": "2.2.3",
+  "sklearn": "1.4.1.post1",
+  "training": {
+    "hidden": [
+      16,
+      8
+    ],
+    "epochs": 200,
+    "batch_size": 64,
+    "lr": 0.001,
+    "weight_decay": 1e-05,
+    "threshold": "best_f2"
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "cov": "empirical + 1e-6 I",
+  "clip": 0,
+  "threshold": "best_f2; final shared protocol",
+  "evaluation_split": "val",
+  "train_normal_count": 972,
+  "val_count": 377,
+  "val_anomalies": 35,
+  "split_sha256": {
+    "train.csv": "fa39267ae305af7ed0d72326f4a6a319ec257374ab70199e1a4cf7b0fc2df481",
+    "val.csv": "594eaaad9a904285033aee2e663ee41359cf38048705adddb5b32e831b55d68c"
+  }
+}

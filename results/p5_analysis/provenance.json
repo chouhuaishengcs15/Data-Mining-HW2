@@ -1,0 +1,20 @@
+{
+  "source": "results/tier2/final_mahalanobis_best_f2_DROP_WIDTH20",
+  "rule": "validation best_f2; published tau and predictions used unchanged",
+  "case_selection": "All test rows misclassified in all five seeds; flagged TP maximizes minimum score/tau among five-seed TPs, tie by row_id. Descriptive post-hoc selection; not representative sampling.",
+  "error_case_ids": [
+    29,
+    823,
+    824,
+    1903
+  ],
+  "flagged_id": 1907,
+  "test_model_retrained": false,
+  "source_sha256": {
+    "feature_errors.csv": "8e01deba756e9e37741a227f5c8ce17a4015b6f876f27c72a524611a60e0e6cb",
+    "scores.csv": "00110956b4a04c00f197fe91c307d55da4d202975703be404a3b88ffd5461d3b",
+    "summary.csv": "95121ea83d4812b0de2db24a66cb1eff1c677d4446769b6fe0f1f7daf4988b1c",
+    "threshold_comparison.csv": "603fe29839a0375c443a84b9a88e50651937237caf25cbc3582c680308f6b8fb",
+    "metrics.csv": "e7e624cf100cf2c7fed29bd45878f0d981c521396e63a7b612beb3f232871a06"
+  }
+}
