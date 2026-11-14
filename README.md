@@ -36,7 +36,8 @@
 ## 共用連結
 
 - 書面共筆：https://docs.google.com/document/d/1pjz_50XfcfH2exVhHeaVaX_RCcebAHG0lvDOhaLCz_I/edit?usp=sharing
-- 共用簡報：https://docs.google.com/presentation/d/1vRS6Ku22WhHy-ERLIsuSlTg7cI7EH60kSGAdRJJnZj8/edit?usp=sharing
+- 共用簡報（製作版）：https://docs.google.com/presentation/d/1vRS6Ku22WhHy-ERLIsuSlTg7cI7EH60kSGAdRJJnZj8/edit?usp=sharing
+- 共用簡報（最終版）：https://docs.google.com/presentation/d/1oxFJMlij3DKCQt150WE1IFmmK3szAANZ1qvR3d5MZKk/edit?usp=sharing
 - Overleaf ：https://www.overleaf.com/project/6af85232e68ccc1bced79414/share#98f9e21f6a1141c711cf4402139201e01c66377b885aa721
 
 ## 執行方式
